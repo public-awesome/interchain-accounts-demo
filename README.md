@@ -235,3 +235,27 @@ chore(bump): bumping version to 2.0
 fix(bug): fixing issue with...
 feat(featurex): adding feature...
 ```
+
+### Groups
+
+```
+icad config keyring-backend test --home ./data/test-1
+icad config node tcp://localhost:16657 --home ./data/test-1
+icad config 
+
+icad tx group create-group $WALLET_1 test-metadata members.json --home ./data/test-1 --from $WALLET_1
+
+icad q group group-info 1 --home ./data/test-1
+
+icad tx group create-group-policy $WALLET_1 1 policy-meta policy.json --home ./data/test-1
+
+icad q group group-policies-by-group 1 --home ./data/test-1
+cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd
+
+icad tx group submit-proposal proposal.json --home ./data/test-1 --from $WALLET_1
+
+icad q group proposal 1 --home ./data/test-1
+
+icad tx group vote 1 $WALLET_1 --home ./data/test-1 VOTE_OPTION_YES  meta --from $WALLET_1
+icad tx group vote 1 $WALLET_2 --home ./data/test-1 VOTE_OPTION_YES  meta --from $WALLET_2
+```

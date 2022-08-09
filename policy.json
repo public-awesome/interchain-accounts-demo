@@ -1,8 +1,8 @@
 {
-    "@type": "/cosmos.group.v1.PercentageDecisionPolicy",
-    "percentage": "1",
+    "@type": "/cosmos.group.v1.ThresholdDecisionPolicy",
+    "threshold": "1",
     "windows": {
-        "voting_period": "1h",
+        "voting_period": "60s",
         "min_execution_period": "0s"
     }
 }

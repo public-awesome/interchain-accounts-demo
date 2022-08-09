@@ -1,14 +1,14 @@
 {
     "members": [
-            {
-                    "address": "cosmos1m9l358xunhhwds0568za49mzhvuxx9uxre5tud",
-                    "weight": "1",
-                    "metadata": "some metadata"
-            },
-            {
-                    "address": "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
-                    "weight": "1",
-                    "metadata": "some metadata"
-            }
+        {
+            "address": "cosmos1m9l358xunhhwds0568za49mzhvuxx9uxre5tud",
+            "weight": "1",
+            "metadata": "some metadata"
+        },
+        {
+            "address": "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
+            "weight": "1",
+            "metadata": "some metadata"
+        }
     ]
 }

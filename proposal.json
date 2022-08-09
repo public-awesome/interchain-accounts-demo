@@ -1,12 +1,11 @@
 {
     "group_policy_address": "cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd",
     "messages": [
-    {
+        {
             "@type": "/intertx.MsgRegisterAccount",
             "owner": "cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd",
-            "connection_id": "connection-0",
-            "version": ""
-    }
+            "connection_id": "connection-0"
+        }
     ],
     "metadata": "4pIMOgIGx1vZGU=",
     "proposers": ["cosmos1m9l358xunhhwds0568za49mzhvuxx9uxre5tud"]

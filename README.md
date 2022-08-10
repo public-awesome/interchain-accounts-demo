@@ -238,6 +238,12 @@ feat(featurex): adding feature...
 
 ### Groups
 
+Placeholder section for `x/group` integration. This is a work-in-progress and will either be moved to a separate guide or replace the current demo.
+This requires a fix to `x/group` in cosmos-sdk to ensure events are correctly propagated to the current context and emitted on successful execution of a group propsal.
+This fix will be included in the next patch release of the sdk: `v0.46.1`
+
+See: https://github.com/cosmos/cosmos-sdk/pull/12888
+
 ```
 icad config keyring-backend test --home ./data/test-1
 icad config node tcp://localhost:16657 --home ./data/test-1
@@ -252,7 +258,7 @@ icad tx group create-group-policy $WALLET_1 1 policy-meta policy.json --home ./d
 icad q group group-policies-by-group 1 --home ./data/test-1
 cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd
 
-icad tx group submit-proposal proposal.json --home ./data/test-1 --from $WALLET_1
+icad tx group submit-proposal prop-register.json --home ./data/test-1 --from $WALLET_1
 
 icad q group proposal 1 --home ./data/test-1
 
@@ -260,9 +266,18 @@ icad tx group vote 1 $WALLET_1 --home ./data/test-1 VOTE_OPTION_YES meta --from 
 icad tx group vote 1 $WALLET_2 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_2
 
 # fund the group policy address
-icad tx bank send $WALLET_1 cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd 10000stake --home ./data/test-1
+icad tx bank send $WALLET_1 cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd 10000000stake --home ./data/test-1
 
-icad tx group exec 1 --from $WALLET_1 --home ./data/test-1
+icad tx group exec 1 --from $WALLET_1 --home ./data/test-1 --gas 500000 -b block
+
+icad tx group submit-proposal prop-sendtx.json --home ./data/test-1 --from $WALLET_1
+
+icad q group proposal 2 --home ./data/test-1
+
+icad tx group vote 2 $WALLET_1 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_1
+icad tx group vote 2 $WALLET_2 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_2
+
+icad tx group exec 2 --from $WALLET_1 --home ./data/test-1 --gas 500000 -b block
 ```
 
 

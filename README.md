@@ -88,14 +88,24 @@ Register an Interchain Account using the `intertx register` cmd.
 Here the message signer is used as the account owner.
 
 ```bash
+# Setup up chain test-1 client configuration settings
+icad config keyring-backend test --home ./data/test-1;
+icad config node tcp://localhost:16657 --home ./data/test-1;
+icad config --home ./data/test-1;
+
+# Setup up chain test-1 client configuration settings
+icad config keyring-backend test --home ./data/test-2;
+icad config node tcp://localhost:26657 --home ./data/test-2;
+icad config --home ./data/test-2;
+
 # Register an interchain account on behalf of WALLET_1 where chain test-2 is the interchain accounts host
 icad tx intertx register --from $WALLET_1 --connection connection-0 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
 
 # Query the address of the interchain account
-icad query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1 --node tcp://localhost:16657
+icad query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1
 
 # Store the interchain account address by parsing the query result: cosmos1hd0f4u7zgptymmrn55h3hy20jv2u0ctdpq23cpe8m9pas8kzd87smtf8al
-export ICA_ADDR=$(icad query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1 --node tcp://localhost:16657 -o json | jq -r '.interchain_account_address') && echo $ICA_ADDR
+export ICA_ADDR=$(icad query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1 -o json | jq -r '.interchain_account_address') && echo $ICA_ADDR
 ```
 
 > This is the situation after registering the ICA. A channel has been created and an ICA has been registered on the host.
@@ -108,13 +118,13 @@ Note this is executed on the host chain to provide the account with an initial b
 
 ```bash
 # Query the interchain account balance on the host chain. It should be empty.
-icad q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
+icad q bank balances $ICA_ADDR --home ./data/test-2
 
 # Send funds to the interchain account.
-icad tx bank send $WALLET_3 $ICA_ADDR 10000stake --chain-id test-2 --home ./data/test-2 --node tcp://localhost:26657 --keyring-backend test -y
+icad tx bank send $WALLET_3 $ICA_ADDR 10000stake --home ./data/test-2 -y
 
 # Query the balance once again and observe the changes
-icad q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
+icad q bank balances $ICA_ADDR --home ./data/test-2
 ```
 
 > This is the situation after funding the ICA.
@@ -141,15 +151,15 @@ icad tx intertx submit \
         "denom": "stake",
         "amount": "1000"
     }
-}' --connection connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+}' --connection connection-0 --from $WALLET_1 --home ./data/test-1 -y
 
 # Alternatively provide a path to a JSON file
-icad tx intertx submit [path/to/msg.json] --connection connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+icad tx intertx submit [path/to/msg.json] --connection connection-0 --from $WALLET_1 --home ./data/test-1 -y
 
 # Wait until the relayer has relayed the packet
 
 # Inspect the staking delegations on the host chain
-icad q staking delegations-to cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k --home ./data/test-2 --node tcp://localhost:26657
+icad q staking delegations-to cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k --home ./data/test-2
 ```
 
 > This is the situation before after sending the staking tx. The user who is the owner of the ICA has staked funds on the host chain to a validator of choice through an interchain accounts packet.
@@ -170,15 +180,15 @@ icad tx intertx submit \
             "amount": "1000"
         }
     ]
-}' --connection connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+}' --connection connection-0 --from $WALLET_1 --home ./data/test-1 -y
 
 # Alternatively provide a path to a JSON file
-icad tx intertx submit [path/to/msg.json] --connection connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+icad tx intertx submit [path/to/msg.json] --connection connection-0 --from $WALLET_1 --home ./data/test-1 -y
 
 # Wait until the relayer has relayed the packet
 
 # Query the interchain account balance on the host chain
-icad q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
+icad q bank balances $ICA_ADDR --chain-id test-2
 ```
 
 #### Testing timeout scenario
@@ -204,26 +214,26 @@ Observe both channel ends by querying the IBC channels for each node.
 
 ```bash
 # inspect channel ends on test chain 1
-icad q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657
+icad q ibc channel channels --home ./data/test-1
 
 # inspect channel ends on test chain 2
-icad q ibc channel channels --home ./data/test-2 --node tcp://localhost:26657
+icad q ibc channel channels --home ./data/test-2
 ```
 
 6. Open a new channel for the existing interchain account on the same connection.
 
 ```bash
-icad tx intertx register --from $WALLET_1 --connection connection-0 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+icad tx intertx register --from $WALLET_1 --connection connection-0 --home ./data/test-1 -y
 ```
 
 7. Inspect the IBC channels once again and observe a new creately interchain accounts channel with `STATE_OPEN`.
 
 ```bash
 # inspect channel ends on test chain 1
-icad q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657
+icad q ibc channel channels --home ./data/test-1
 
 # inspect channel ends on test chain 2
-icad q ibc channel channels --home ./data/test-2 --node tcp://localhost:26657
+icad q ibc channel channels --home ./data/test-2
 ```
 
 ## Collaboration
@@ -236,7 +246,7 @@ fix(bug): fixing issue with...
 feat(featurex): adding feature...
 ```
 
-### Groups
+### Groups Demo
 
 Placeholder section for `x/group` integration. This is a work-in-progress and will either be moved to a separate guide or replace the current demo.
 This requires a fix to `x/group` in cosmos-sdk to ensure events are correctly propagated to the current context and emitted on successful execution of a group propsal.
@@ -244,40 +254,84 @@ This fix will be included in the next patch release of the sdk: `v0.46.1`
 
 See: https://github.com/cosmos/cosmos-sdk/pull/12888
 
-```
-icad config keyring-backend test --home ./data/test-1
-icad config node tcp://localhost:16657 --home ./data/test-1
-icad config --home ./data/test-1
+- Setup the CLI client configurations for test chains `test-1` and `test-2`.
 
-icad tx group create-group $WALLET_1 test-metadata members.json --home ./data/test-1 --from $WALLET_1
+```
+icad config keyring-backend test --home ./data/test-1;
+icad config node tcp://localhost:16657 --home ./data/test-1;
+icad config --home ./data/test-1;
+
+icad config keyring-backend test --home ./data/test-2;
+icad config node tcp://localhost:26657 --home ./data/test-2;
+icad config --home ./data/test-2;
+```
+
+- Create a new group using the `members.json` file provided.
+
+```
+icad tx group create-group $WALLET_1 test-metadata members.json --from $WALLET_1 --home ./data/test-1
 
 icad q group group-info 1 --home ./data/test-1
+```
 
+- Create a new group policy using the `policy.json` file provided. A new `ThresholdDecisionPolicy` is created with a threshold of `2` and voting period of `60s`.
+
+```
 icad tx group create-group-policy $WALLET_1 1 policy-meta policy.json --home ./data/test-1
 
 icad q group group-policies-by-group 1 --home ./data/test-1
-cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd
+```
 
+- Extract the group policy address from the response JSON.
+```
+export GROUP_POLICY_ADDR=$(icad q group group-policies-by-group 1 --home ./data/test-1 --home ./data/test-1 -o json | jq -r '.group_policies[0].address') && echo $GROUP_POLICY_ADDR
+cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd
+```
+
+- Send some funds to the group policy address
+
+```
+icad tx bank send $WALLET_1 $GROUP_POLICY_ADDR 10000000stake --home ./data/test-1
+```
+
+- Submit a new propsal to execute a `/intertx.MsgRegisterAccount` where the account owner is the group policy address.
+
+```
 icad tx group submit-proposal prop-register.json --home ./data/test-1 --from $WALLET_1
 
 icad q group proposal 1 --home ./data/test-1
+```
 
+- Vote on the propsal using both of the group members.
+
+```
 icad tx group vote 1 $WALLET_1 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_1
 icad tx group vote 1 $WALLET_2 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_2
+```
 
-# fund the group policy address
-icad tx bank send $WALLET_1 cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd 10000000stake --home ./data/test-1
+- Execute the proposal once the voting period of `60s` has elapsed and votes have been tallied.
 
+```
 icad tx group exec 1 --from $WALLET_1 --home ./data/test-1 --gas 500000 -b block
+```
 
+- Submit a new proposal to execute a `/intertx.MsgSubmitTx` that includes a `MsgDelegate` to execute using the interchain account registered on chain `test-2`.
+
+```
 icad tx group submit-proposal prop-sendtx.json --home ./data/test-1 --from $WALLET_1
 
 icad q group proposal 2 --home ./data/test-1
-
-icad tx group vote 2 $WALLET_1 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_1
-icad tx group vote 2 $WALLET_2 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_2
-
-icad tx group exec 2 --from $WALLET_1 --home ./data/test-1 --gas 500000 -b block
 ```
 
+- Once again, vote on the proposal with both of the group members.
 
+```
+icad tx group vote 2 $WALLET_1 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_1
+icad tx group vote 2 $WALLET_2 --home ./data/test-1 VOTE_OPTION_YES meta --from $WALLET_2
+```
+
+- Execute the propsal once it has been accepted.
+
+```
+icad tx group exec 2 --from $WALLET_1 --home ./data/test-1 --gas 500000 -b block
+```

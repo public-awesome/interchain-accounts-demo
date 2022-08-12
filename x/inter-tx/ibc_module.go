@@ -1,13 +1,13 @@
 package inter_tx
 
 import (
-	proto "github.com/gogo/protobuf/proto"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/interchain-accounts/x/inter-tx/keeper"
+	"github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
@@ -123,26 +123,25 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet acknowledgement: %v", err)
 	}
 
-	txMsgData := &sdk.TxMsgData{}
-	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+	switch resp := ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Result:
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
+				sdk.NewAttribute(types.AttributeKeyPacketSequence, fmt.Sprintf("%d", packet.GetSequence())),
+			),
+		)
+	case *channeltypes.Acknowledgement_Error:
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+			),
+		)
 	}
 
-	switch len(txMsgData.Data) {
-	case 0:
-		// TODO: handle for sdk 0.46.x
-		return nil
-	default:
-		for _, msgData := range txMsgData.Data {
-			response, err := handleMsgData(ctx, msgData)
-			if err != nil {
-				return err
-			}
-
-			im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
-		}
-		return nil
-	}
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
@@ -151,34 +150,12 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeTimeout,
+			sdk.NewAttribute(types.AttributeKeyPacketSequence, fmt.Sprintf("%d", packet.GetSequence())),
+		),
+	)
+
 	return nil
-}
-
-// NegotiateAppVersion implements the IBCModule interface
-func (im IBCModule) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	return "", nil
-}
-
-func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
-	switch msgData.MsgType {
-	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-		msgResponse := &banktypes.MsgSendResponse{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
-		}
-
-		return msgResponse.String(), nil
-
-	// TODO: handle other messages
-
-	default:
-		return "", nil
-	}
 }

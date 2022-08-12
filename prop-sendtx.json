@@ -5,6 +5,7 @@
             "@type":"/intertx.MsgSubmitTx",
             "owner":"cosmos1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzsfwkgpd",
             "connection_id":"connection-0",
+            "timeout": "1h",
             "msg": {
                 "@type":"/cosmos.staking.v1beta1.MsgDelegate",
                 "delegator_address":"cosmos1rzxvxy6kxay5u2dnwcck8xdsx6hnv5w46ah74k3v6jnh0437qr9qf3fq82",

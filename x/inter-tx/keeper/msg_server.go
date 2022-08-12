@@ -12,19 +12,10 @@ import (
 	"github.com/cosmos/interchain-accounts/x/inter-tx/types"
 )
 
-var _ types.MsgServer = msgServer{}
-
-type msgServer struct {
-	Keeper
-}
-
-// NewMsgServerImpl creates and returns a new types.MsgServer, fulfilling the intertx Msg service interface
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
-}
+var _ types.MsgServer = Keeper{}
 
 // RegisterAccount implements the Msg/RegisterAccount interface
-func (k msgServer) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
+func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.controllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, msg.Version); err != nil {
@@ -35,7 +26,7 @@ func (k msgServer) RegisterAccount(goCtx context.Context, msg *types.MsgRegister
 }
 
 // SubmitTx implements the Msg/SubmitTx interface
-func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
+func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)

@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -13,6 +13,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+const (
+	// FlagConnectionID is the cli flag used to provide the ID of a particular connection end
+	FlagConnectionID = "connection"
+	// FlagTimeout is the cli flag used to provide an explicit timeout for IBC packets
+	FlagTimeout = "timeout"
+	// FlagVersion is the cli flag used to provide an explicit channel version upon account registration
+	FlagVersion = "version"
 )
 
 // GetTxCmd creates and returns the intertx tx command
@@ -56,10 +65,8 @@ func getRegisterAccountCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(fsConnectionID)
-	cmd.Flags().AddFlagSet(fsVersion)
-	_ = cmd.MarkFlagRequired(FlagConnectionID)
-
+	cmd.Flags().String(FlagConnectionID, "", "The ID of the connection end over which the channel is created.")
+	cmd.Flags().String(FlagVersion, "", "The channel version string to be used, if empty a default will be determined by the application.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -81,7 +88,7 @@ func getSubmitTxCmd() *cobra.Command {
 			if err := cdc.UnmarshalInterfaceJSON([]byte(args[0]), &txMsg); err != nil {
 
 				// check for file path if JSON input is not provided
-				contents, err := ioutil.ReadFile(args[0])
+				contents, err := os.ReadFile(args[0])
 				if err != nil {
 					return errors.Wrap(err, "neither JSON input nor path to .json file for sdk msg were provided")
 				}
@@ -104,10 +111,8 @@ func getSubmitTxCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(fsConnectionID)
-	_ = cmd.MarkFlagRequired(FlagConnectionID)
-	cmd.Flags().AddFlagSet(fsTimeout)
-
+	cmd.Flags().String(FlagConnectionID, "", "The ID of the connection end over which the channel exists.")
+	cmd.Flags().String(FlagTimeout, "1h", "The timeout period for IBC packets sent across the channel.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

@@ -8,6 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	proto "github.com/gogo/protobuf/proto"
+
+	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
 var (
@@ -34,6 +37,10 @@ func (msg MsgRegisterAccount) ValidateBasic() error {
 
 	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "failed to parse address: %s", msg.Owner)
+	}
+
+	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnectionIdentifier, err.Error())
 	}
 
 	return nil
@@ -96,6 +103,20 @@ func (msg *MsgSubmitTx) GetTxMsg() sdk.Msg {
 	return sdkMsg
 }
 
+// ValidateBasic implements sdk.Msg
+func (msg MsgSubmitTx) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid owner address")
+	}
+
+	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnectionIdentifier, err.Error())
+	}
+
+	return nil
+}
+
 // GetSigners implements sdk.Msg
 func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
@@ -104,14 +125,4 @@ func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{accAddr}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgSubmitTx) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid owner address")
-	}
-
-	return nil
 }

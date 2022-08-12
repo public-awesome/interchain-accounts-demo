@@ -50,7 +50,7 @@ func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSubmitTx creates and returns a new MsgSubmitTx instance
-func NewMsgSubmitTx(sdkMsg sdk.Msg, connectionID, owner string) (*MsgSubmitTx, error) {
+func NewMsgSubmitTx(sdkMsg sdk.Msg, connectionID, timeout, owner string) (*MsgSubmitTx, error) {
 	any, err := PackTxMsgAny(sdkMsg)
 	if err != nil {
 		return nil, err
@@ -59,6 +59,7 @@ func NewMsgSubmitTx(sdkMsg sdk.Msg, connectionID, owner string) (*MsgSubmitTx, e
 	return &MsgSubmitTx{
 		ConnectionId: connectionID,
 		Owner:        owner,
+		Timeout:      timeout,
 		Msg:          any,
 	}, nil
 }

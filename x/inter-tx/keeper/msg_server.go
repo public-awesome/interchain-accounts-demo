@@ -63,9 +63,14 @@ func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*typ
 		Data: data,
 	}
 
+	timeout, err := time.ParseDuration(msg.Timeout)
+	if err != nil {
+		return nil, err
+	}
+
 	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := ctx.BlockTime().Add(time.Hour).UnixNano()
+	timeoutTimestamp := ctx.BlockTime().Add(timeout).UnixNano()
 	_, err = k.icaControllerKeeper.SendTx(ctx, chanCap, msg.ConnectionId, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
 		return nil, err

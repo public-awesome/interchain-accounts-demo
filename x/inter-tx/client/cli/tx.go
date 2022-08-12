@@ -91,7 +91,7 @@ func getSubmitTxCmd() *cobra.Command {
 				}
 			}
 
-			msg, err := types.NewMsgSubmitTx(txMsg, viper.GetString(FlagConnectionID), clientCtx.GetFromAddress().String())
+			msg, err := types.NewMsgSubmitTx(txMsg, viper.GetString(FlagConnectionID), viper.GetString(FlagTimeout), clientCtx.GetFromAddress().String())
 			if err != nil {
 				return err
 			}

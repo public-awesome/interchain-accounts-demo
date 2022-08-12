@@ -4,10 +4,10 @@ go 1.19
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/cosmos/cosmos-sdk => ../forks/cosmos-sdk
+// replace github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 
 require (
-	github.com/cosmos/cosmos-sdk v0.46.0
+	github.com/cosmos/cosmos-sdk v0.46.1-0.20220810141653-d74d102fbcdc
 	github.com/gogo/protobuf v1.3.3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0

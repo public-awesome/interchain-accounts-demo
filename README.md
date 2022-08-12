@@ -16,9 +16,9 @@ Interchain Accounts developer docs can be found on the IBC documentation website
 
 https://ibc.cosmos.network/main/apps/interchain-accounts/overview.html
 
-## Setup
+## Install
 
-1. Clone this repository and build the application binary
+Clone this repository and build the `icad` application binary.
 
 ```bash
 git clone https://github.com/cosmos/interchain-accounts-demo.git
@@ -27,16 +27,37 @@ cd interchain-accounts
 make install 
 ```
 
-2. Download and install an IBC relayer. ([hermes](https://hermes.informal.systems/), [go relayer](https://github.com/cosmos/relayer) or both )
-```bash
-# hermes
-cargo install --version 0.15.0 ibc-relayer-cli --bin hermes --locked
+## Guides
 
-#go relayer (make sure to use v2.0.0-rc4 or later!)
+### Prerequisites
+
+Download and install an IBC relayer, we recommend ([hermes](https://hermes.informal.systems/) or [rly](https://github.com/cosmos/relayer).
+
+- Install `hermes`:
+```bash
+cargo install --version 0.15.0 ibc-relayer-cli --bin hermes --locked
+```
+
+- Install `rly`:
+```bash
 git clone https://github.com/cosmos/relayer.git
 cd relayer && git checkout v2.0.0-rc4
 make install
 ```
+
+---
+
+## Collaboration
+
+Please use conventional commits  https://www.conventionalcommits.org/en/v1.0.0/
+
+```
+chore(bump): bumping version to 2.0
+fix(bug): fixing issue with...
+feat(featurex): adding feature...
+```
+
+--- 
 
 3. Bootstrap two chains, configure the relayer and create an IBC connection (on top of clients that are created as well)
 ```bash
@@ -234,16 +255,6 @@ icad q ibc channel channels --home ./data/test-1
 
 # inspect channel ends on test chain 2
 icad q ibc channel channels --home ./data/test-2
-```
-
-## Collaboration
-
-Please use conventional commits  https://www.conventionalcommits.org/en/v1.0.0/
-
-```
-chore(bump): bumping version to 2.0
-fix(bug): fixing issue with...
-feat(featurex): adding feature...
 ```
 
 ### Groups Demo

@@ -106,6 +106,7 @@ func getSubmitTxCmd() *cobra.Command {
 
 	cmd.Flags().AddFlagSet(fsConnectionID)
 	_ = cmd.MarkFlagRequired(FlagConnectionID)
+	cmd.Flags().AddFlagSet(fsTimeout)
 
 	flags.AddTxFlagsToCmd(cmd)
 

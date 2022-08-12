@@ -10,33 +10,32 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	controllerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/interchain-accounts/x/inter-tx/types"
 )
 
+// Keeper defines the intertx module keeper.
 type Keeper struct {
-	cdc codec.Codec
-
+	cdc      codec.Codec
 	storeKey storetypes.StoreKey
 
-	scopedKeeper        capabilitykeeper.ScopedKeeper
-	icaControllerKeeper icacontrollerkeeper.Keeper
+	controllerKeeper controllerkeeper.Keeper
+	scopedKeeper     capabilitykeeper.ScopedKeeper
 }
 
-func NewKeeper(cdc codec.Codec, storeKey storetypes.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper) Keeper {
+// NewKeeper creates and returns a new intertx keeper instnace.
+func NewKeeper(cdc codec.Codec, storeKey storetypes.StoreKey, controllerKeeper controllerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper) Keeper {
 	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
-
-		scopedKeeper:        scopedKeeper,
-		icaControllerKeeper: iaKeeper,
+		cdc:              cdc,
+		storeKey:         storeKey,
+		controllerKeeper: controllerKeeper,
+		scopedKeeper:     scopedKeeper,
 	}
 }
 
-// Logger returns the application logger, scoped to the associated module
+// Logger returns the application logger, scoped to the intertx module.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 // ClaimCapability claims the channel capability passed via the OnOpenChanInit callback

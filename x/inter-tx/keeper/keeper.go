@@ -11,7 +11,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/interchain-accounts/x/inter-tx/types"
 )
 
@@ -36,7 +35,7 @@ func NewKeeper(cdc codec.Codec, storeKey storetypes.StoreKey, iaKeeper icacontro
 
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 // ClaimCapability claims the channel capability passed via the OnOpenChanInit callback

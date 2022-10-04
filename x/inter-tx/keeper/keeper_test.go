@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
@@ -18,15 +16,20 @@ import (
 )
 
 var (
-	// TestAccAddress defines a resuable bech32 address for testing purposes
-	// TODO: update crypto.AddressHash() when sdk uses address.Module()
-	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	// TestPortID defines a resuable port identifier for testing purposes
+
+	// TestPortID defines a reusable port identifier for testing purposes
 	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
-	// TestVersion defines a resuable interchainaccounts version string for testing purposes
-	TestVersion = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+
+	// TestVersion defines a reusable interchainaccounts version string for testing purposes
+	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: ibctesting.FirstConnectionID,
+		HostConnectionId:       ibctesting.FirstConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}))
 )
 
 func init() {
@@ -51,15 +54,6 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) GetICAApp(chain *ibctesting.TestChain) *icaapp.App {
-	app, ok := chain.App.(*icaapp.App)
-	if !ok {
-		panic("not ica app")
-	}
-
-	return app
-}
-
 // TestKeeperTestSuite runs all the tests within this package.
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
@@ -82,4 +76,57 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
+}
+
+// SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+func SetupICAPath(path *ibctesting.Path, owner string) error {
+	if err := RegisterInterchainAccount(path.EndpointA, owner); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetICAApp(chain *ibctesting.TestChain) *icaapp.App {
+	app, ok := chain.App.(*icaapp.App)
+	if !ok {
+		panic("not ica app")
+	}
+
+	return app
+}
+
+// RegisterInterchainAccount is a helper function for starting the channel handshake
+func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+	portID, err := icatypes.NewControllerPortID(owner)
+	if err != nil {
+		return err
+	}
+
+	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
+
+	if err := GetICAApp(endpoint.Chain).ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+		return err
+	}
+
+	// commit state changes for proof verification
+	endpoint.Chain.NextBlock()
+
+	// update port/channel ids
+	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	endpoint.ChannelConfig.PortID = portID
+
+	return nil
 }

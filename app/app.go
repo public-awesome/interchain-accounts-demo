@@ -98,6 +98,7 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	appparams "github.com/cosmos/interchain-accounts/app/params"
+	v6 "github.com/cosmos/interchain-accounts/app/upgrades/v6"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
@@ -508,6 +509,8 @@ func New(
 
 	app.SetEndBlocker(app.EndBlocker)
 
+	app.setupUpgradeHandlers()
+
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
@@ -557,6 +560,8 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	}
 
 	genesisState[icatypes.ModuleName] = genesisJson
+
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
@@ -695,10 +700,23 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	return paramsKeeper
 }
 
-func (*App) OnTxSucceeded(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
-}
-
-func (*App) OnTxFailed(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
+// setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
+func (app *App) setupUpgradeHandlers() {
+	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
+	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
+	// TODO: update git tag in link below
+	// See: https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v6.UpgradeName,
+		v6.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.appCodec,
+			app.keys[capabilitytypes.ModuleName],
+			app.CapabilityKeeper,
+			intertxtypes.ModuleName,
+		),
+	)
 }
 
 // TestingApp functions

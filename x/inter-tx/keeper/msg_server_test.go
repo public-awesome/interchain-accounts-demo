@@ -3,9 +3,9 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 
 	"github.com/cosmos/interchain-accounts/x/inter-tx/keeper"
 	"github.com/cosmos/interchain-accounts/x/inter-tx/types"
@@ -129,18 +129,6 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				registerInterchainAccount = true
 				owner = "cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5"
 				connectionId = path.EndpointA.ConnectionID
-			}, false,
-		},
-		{
-			"failure - module does not own channel capability", func() {
-				registerInterchainAccount = false
-				owner = TestOwnerAddress
-				connectionId = path.EndpointA.ConnectionID
-				icaMsg = &banktypes.MsgSend{
-					FromAddress: "source-address",
-					ToAddress:   "destination-address",
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
-				}
 			}, false,
 		},
 	}
